@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Git branching and merging introduction</title>
+
+		<meta name="description" content="A very basic introduction to Git branches and merging.">
+		<meta name="author" content="Paul Mooore">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/default.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+		<script>
+			if( window.location.search.match( /print-pdf/gi ) ) {
+				var link = document.createElement( 'link' );
+				link.rel = 'stylesheet';
+				link.type = 'text/css';
+				link.href = 'css/print/pdf.css';
+				document.getElementsByTagName( 'head' )[0].appendChild( link );
+			}
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<div class="slides">
+
+				<!--
+
+				  https://www.youtube.com/watch?feature=player_detailpage&v=ZDR433b0HJY#t=2791s
+
+			  -->
+
+				<!-- Git structure -->
+				<section>
+					<section>
+						<h2>Commits</h2>
+						<ul>
+							<li>Create a snapshot of the project.</li>
+							<li>Two thing are created:
+								<ul>
+									<li><strong>A Tree</strong> - Git specific representation of the project.</li>
+									<li><strong>A Commit object</strong> - Holds the information about the commit.</li>
+								</ul>
+							</li>
+						</ul>
+					</section>
+
+					<section>
+						<h2>Trees</h2>
+						<p>
+							Is a git specific representaion of the project.  It includes representations of
+							folders and files with in the project. The structure is designed to make the
+							actions that git needs to perform be as efficient as possible.
+						</p>
+					</section>
+
+					<section>
+						<h2>Commit objects</h2>
+						<ul>
+							<li>Contain:
+								<ul>
+									<li>A reference to the project <strong>Tree</strong> for the commit.</li>
+									<li>A reference to its parent(s) commit object.  This can be a reference to zero, one or multiple commit objects:
+										<ul>
+											<li><strong>Zero</strong> Initial commit</li>
+											<li><strong>One</strong> Normal commit</li>
+											<li><strong>Multiple</strong> Merge</li>
+										</ul>
+									</li>
+									<li>Details of the commit such as message, author, commiter</li>
+								</ul>
+							</li>
+						</ul>
+					</section>
+
+
+					<!-- Branches -->
+					<section>
+						<h2>Branches</h2>
+						<p>
+							A branch is nothing more than a pointer to a commit object.
+						</p>
+						<pre>
+# Create a new branch and then changes to it
+git branch fred
+git checkout fred
+						</pre>
+
+
+					</section>
+
+					<section>
+						<h1>Switching between branches</h2>
+							<pre>
+	# Create repository
+	mkdir 1
+	cd 1
+	git init
+
+	# Create file in master branch
+	echo "hello" > f
+	git add .
+	git commit -m "initial commit"
+
+	# Create branch b1
+	git checkout f
+	git branch b1
+	git branch
+
+	# modify f in local workspace and index
+	echo "world" > f
+	git add f
+	echo "w" > f
+
+	# Change to branch b1
+	# This is allowed because the master branch is reachable from b1
+	git checkout b1
+
+	# commit the changes to b1
+	git commit -m 'commit to b1'
+
+	# This fails because there are changes to f and there are differences
+	# between f in master and b1
+	git checkout master
+							</pre>
+					</section>
+
+					<!-- Merging -->
+					<section>
+						<h2>Merging</h2>
+						<ul>
+							<li>There are two types of merge:
+								<ul>
+									<li>Fast forward</li>
+									<li>Diverged (I made this term up)</li>
+								</ul>
+							</li>
+						</ul>
+
+					</section>
+
+					<section>
+						<h2>To merge</h2>
+						<ul>
+							<li>Change to the branch you want to introduce the changes to</li>
+							<li>Call the merge command targeting the branch that contains the changes</li>
+							<li>If there are no conflicts the changes will be commited</li>
+							<li>If there are conflicts
+								<ul>
+									<li>Diff markers will be added to the workspace files</li>
+									<li>Once the conflicts have been resolved you add the to the index and commit manually</li>
+								</ul>
+						</ul>
+					</section>
+
+					<section>
+						<h2>Fast forward merges</h2>
+						<pre>
+# Create repository
+mkdir 1
+cd 1
+git init
+
+# add file to master branch
+echo "hello" > f
+git add .
+git commit -m "Commit to master"
+
+# Create and change to branch b1
+git branch b1
+git checkout b1
+
+# make modifications in branch b1
+echo " W" >> f
+cat f
+git add .
+git commit -m "Commit to b1"
+
+echo "Hello World" > f
+git add f
+git commit -m "Second commit to b1"
+
+# Change to master branch
+git checkout master
+
+# Merge changes from b1 into master
+git merge b1
+						</pre>
+					</section>
+
+					<section>
+						<h2>Diverged merges</h2>
+						<pre>
+# Create repository
+mkdir 1
+cd 1
+git init
+
+# add file to master branch
+echo "Hello" > f
+git add f
+git commit -m "Commit to master"
+
+# create branches b1 & b2
+git branch b1
+git branch b2
+
+# Switch to b1 and ammend f
+git checkout b1
+echo "Hello world" > f
+git add f
+git commit -m "Change f in b1"
+
+# Switch to b2 and add a new file
+git checkout b2
+echo "a new file" > g
+git add g
+git commit -m "Added g in b2"
+
+# Switch to master and merge b1 (fastforward) and b2 (diverged)
+git checkout master
+git merge b1
+git merge b2
+						</pre>
+					</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Parallax scrolling
+				// parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+				// parallaxBackgroundSize: '2100px 900px',
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
